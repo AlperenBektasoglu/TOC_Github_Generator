@@ -185,45 +185,64 @@
         }, 3000);
       }
 
-      function generateTableOfContents() {
-        const titleText = document.getElementById("tocTitle").value;
-        const files = Array.from(document.getElementById("fileInput").files);
-        const mdFiles = files.filter((file) => file.name.toLowerCase().endsWith(".md"));
-        mdFiles.sort((a, b) => a.name.localeCompare(b.name));
-        let toc = "## " + titleText + "\n\n";
-        mdFiles.forEach((file) => {
-          const reader = new FileReader();
-          if (file.name === "README.md") return;
-          reader.onload = function (e) {
-            const markdownContent = e.target.result;
-            const fileToc = generateTableOfContentsFromMarkdown(markdownContent, file.name);
-            toc += fileToc + "\n\n";
-            document.getElementById("markdownOutput").value = toc;
-          };
-          reader.readAsText(file);
-        });
-      }
+    function generateTableOfContents() {
+      const titleText = document.getElementById("tocTitle").value;
+      const files = Array.from(document.getElementById("fileInput").files);
+      const mdFiles = files.filter((file) => file.name.toLowerCase().endsWith(".md"));
+      mdFiles.sort((a, b) => a.name.localeCompare(b.name));
+      let toc = "## " + titleText + "\n\n";
 
-      function generateTableOfContentsFromMarkdown(markdown, fileName) {
-        const regex = /^(#+)\s+(.+)/gm;
-        let toc = "";
-        let match;
-        while ((match = regex.exec(markdown)) !== null) {
-          const level = match[1].length;
-          const title = match[2];
-          const link = title
-            .toLowerCase()
-            .replace(/\s+/g, "-")
-            .replaceAll("?", "")
-            .replaceAll("(", "")
-            .replaceAll(")", "")
-            .trimEnd();
-          const fileLink = fileName.replace(/\s+/g, "-").replace(/\.md$/, ".md");
-          const tocItem = `${"\t".repeat(level - 1)}- [${title}](${fileLink}#${link})`;
-          toc += tocItem + "\n";
-        }
-        return toc.trim();
+      // Dosyaları sırayla işlemek için bir Promise zinciri oluşturun
+      const processFilesSequentially = (files) => {
+        return files.reduce((promiseChain, file) => {
+          return promiseChain.then(() => new Promise((resolve) => {
+            if (file.name === "README.md") {
+              resolve();
+              return;
+            }
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              const markdownContent = e.target.result;
+              const fileToc = generateTableOfContentsFromMarkdown(markdownContent, file.name);
+              toc += fileToc + "\n\n";
+              document.getElementById("markdownOutput").value = toc;
+              resolve();
+            };
+            reader.readAsText(file);
+          }));
+        }, Promise.resolve());
+      };
+
+      // Dosyaları sırayla işlemek için Promise zincirini başlatın
+      processFilesSequentially(mdFiles)
+        .then(() => {
+          console.log("Tüm dosyalar işlendi.");
+        })
+        .catch((error) => {
+          console.error("Bir hata oluştu:", error);
+        });
+    }
+
+    function generateTableOfContentsFromMarkdown(markdown, fileName) {
+      const regex = /^(#+)\s+(.+)/gm;
+      let toc = "";
+      let match;
+      while ((match = regex.exec(markdown)) !== null) {
+        const level = match[1].length;
+        const title = match[2];
+        const link = title
+          .toLowerCase()
+          .replace(/\s+/g, "-")
+          .replaceAll("?", "")
+          .replaceAll("(", "")
+          .replaceAll(")", "")
+          .trimEnd();
+        const fileLink = fileName.replace(/\s+/g, "-").replace(/\.md$/, ".md");
+        const tocItem = `${"\t".repeat(level - 1)}- [${title}](${fileLink}#${link})`;
+        toc += tocItem + "\n";
       }
+      return toc.trim();
+    }
     </script>
   </body>
 </html>
