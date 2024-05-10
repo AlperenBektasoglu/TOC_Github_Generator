@@ -189,10 +189,8 @@
       const titleText = document.getElementById("tocTitle").value;
       const files = Array.from(document.getElementById("fileInput").files);
       const mdFiles = files.filter((file) => file.name.toLowerCase().endsWith(".md"));
-      mdFiles.sort((a, b) => a.name.localeCompare(b.name));
       let toc = "## " + titleText + "\n\n";
 
-      // Dosyaları sırayla işlemek için bir Promise zinciri oluşturun
       const processFilesSequentially = (files) => {
         return files.reduce((promiseChain, file) => {
           return promiseChain.then(() => new Promise((resolve) => {
@@ -213,7 +211,6 @@
         }, Promise.resolve());
       };
 
-      // Dosyaları sırayla işlemek için Promise zincirini başlatın
       processFilesSequentially(mdFiles)
         .then(() => {
           console.log("Tüm dosyalar işlendi.");
