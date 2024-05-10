@@ -147,6 +147,7 @@
 
     <h3 style="margin-left: 15px">Step - 3</h3>
     <p style="margin-left: 15px"> Press the button below to see the result.</p>
+    <p style="margin-left: 15px"> Note: It is recommended to name md files like 001-xxx.md 002-yyy.md</p>
     <button onclick="generateTableOfContents()" style="margin-left: 15px">Generate Table of Contents For Github</button><br /><br />
     <hr />
 
@@ -159,31 +160,31 @@
     </footer>
 
     <script>
-      function copy() {
-        const copyText = document.getElementById("markdownOutput");
-        navigator.clipboard.writeText(copyText.value);
-        showToast("✔ Text copied to clipboard!");
-      }
+    function copy() {
+      const copyText = document.getElementById("markdownOutput");
+      navigator.clipboard.writeText(copyText.value);
+      showToast("✔ Text copied to clipboard!");
+    }
 
-      function showToast(message) {
-        const toast = document.createElement("div");
-        toast.textContent = message;
-        toast.style.backgroundColor = "#4caf50";
-        toast.style.color = "#fff";
-        toast.style.padding = "10px 20px";
-        toast.style.borderRadius = "5px";
-        toast.style.position = "fixed";
-        toast.style.top = "20px";
-        toast.style.right = "20px";
-        toast.style.zIndex = "9999";
-        document.body.appendChild(toast);
+    function showToast(message) {
+      const toast = document.createElement("div");
+      toast.textContent = message;
+      toast.style.backgroundColor = "#4caf50";
+      toast.style.color = "#fff";
+      toast.style.padding = "10px 20px";
+      toast.style.borderRadius = "5px";
+      toast.style.position = "fixed";
+      toast.style.top = "20px";
+      toast.style.right = "20px";
+      toast.style.zIndex = "9999";
+      document.body.appendChild(toast);
+      setTimeout(function () {
+        toast.style.opacity = 0;
         setTimeout(function () {
-          toast.style.opacity = 0;
-          setTimeout(function () {
-            toast.remove();
-          }, 1000);
-        }, 3000);
-      }
+          toast.remove();
+        }, 1000);
+      }, 3000);
+    }
 
     function generateTableOfContents() {
       const titleText = document.getElementById("tocTitle").value;
@@ -220,7 +221,6 @@
         });
     }
 
-    // DENEME
     function generateTableOfContentsFromMarkdown(markdown, fileName) {
       const regex = /^(#+)\s+(.+)/gm;
       let toc = "";
