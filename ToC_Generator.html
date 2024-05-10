@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Table of Contents Generator</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f7f7f7;
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 10px;
+      }
+
+      input[type="file"] {
+        width: calc(100% - 45px);
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+        font-size: 16px;
+        outline: none;
+      }
+
+      .input-container {
+        display: flex;
+        align-items: center;
+      }
+
+      .input-container input[type="file"] {
+        margin-left: 15px;
+      }
+
+      .button-container {
+        text-align: center;
+        margin-top: 20px;
+      }
+
+      button {
+        padding: 5px 10px;
+        border: none;
+        border-radius: 5px;
+        background-color: #4caf50;
+        color: #fff;
+        font-size: 13px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        margin-right: 10px;
+      }
+
+      button:hover {
+        background-color: #45a049;
+      }
+
+      textarea {
+        width: calc(100% - 45px);
+        margin-top: -20px;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+        font-size: 14px;
+        resize: vertical;
+        outline: none;
+      }
+
+      #tocTitle {
+      width: calc(100% - 45px);
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+      font-size: 16px;
+      outline: none;
+      margin-left: 15px;
+    }
+
+    #tocTitleLabel {
+      display: block;
+      margin-left: 15px;
+      margin-bottom: 10px;
+    }
+
+    footer {
+      font-family: Verdana, Geneva, Tahoma, sans-serif;
+      width: 100%;
+      position: fixed;
+      bottom: 0;
+      font-size: 11px;
+      background-color: #333;
+      color: #fff;
+      padding: 5px 0;
+      text-align: center;
+    }
+
+    footer a {
+      color: #fff;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+    </style>
+  </head>
+
+  <body>
+    <h1>Generate Table of Contents For Github</h1>
+
+    <h3 style="margin-left: 15px">Step - 1</h3>
+    <label for="tocTitle" style="margin-left: 15px">Enter the table of contents title:</label>
+    <input type="text" id="tocTitle" style="margin-left: 15px" value="Table Of Contents"/>
+    <hr />
+
+    <h3 style="margin-left: 15px">Step - 2</h3>
+    <label style="margin-left: 15px">Select the repository folder containing md below: </label>
+    <input
+      type="file"
+      id="fileInput"
+      webkitdirectory
+      directory
+      multiple
+      accept="text/x-markdown"
+      style="margin-left: 15px"
+    />
+    <hr />
+
+    <h3 style="margin-left: 15px">Step - 3</h3>
+    <p style="margin-left: 15px"> Press the button below to see the result.</p>
+    <button onclick="generateTableOfContents()" style="margin-left: 15px">Generate Table of Contents For Github</button><br /><br />
+    <hr />
+
+    <h3 style="margin-left: 15px; display: inline-block;">Result:</h3>
+    <button onclick="copy()" style="float: right; margin-right: 15px; margin-top:10px;">Copy</button><br /><br />
+    <textarea id="markdownOutput" rows="20" cols="120" readonly style="margin-left: 15px"></textarea>
+
+    <footer style="text-align: center;">
+      <p> © 2024 - Created By <a href="https://github.com/AlperenBektasoglu" style="color:green;"> Alperen Bektaşoğlu</a></p>
+    </footer>
+
+    <script>
+      function copy() {
+        const copyText = document.getElementById("markdownOutput");
+        navigator.clipboard.writeText(copyText.value);
+        showToast("✔ Text copied to clipboard!");
+      }
+
+      function showToast(message) {
+        const toast = document.createElement("div");
+        toast.textContent = message;
+        toast.style.backgroundColor = "#4caf50";
+        toast.style.color = "#fff";
+        toast.style.padding = "10px 20px";
+        toast.style.borderRadius = "5px";
+        toast.style.position = "fixed";
+        toast.style.top = "20px";
+        toast.style.right = "20px";
+        toast.style.zIndex = "9999";
+        document.body.appendChild(toast);
+        setTimeout(function () {
+          toast.style.opacity = 0;
+          setTimeout(function () {
+            toast.remove();
+          }, 1000);
+        }, 3000);
+      }
+
+      function generateTableOfContents() {
+        const titleText = document.getElementById("tocTitle").value;
+        const files = Array.from(document.getElementById("fileInput").files);
+        const mdFiles = files.filter((file) => file.name.toLowerCase().endsWith(".md"));
+        mdFiles.sort((a, b) => a.name.localeCompare(b.name));
+        let toc = "## " + titleText + "\n\n";
+        mdFiles.forEach((file) => {
+          const reader = new FileReader();
+          if (file.name === "README.md") return;
+          reader.onload = function (e) {
+            const markdownContent = e.target.result;
+            const fileToc = generateTableOfContentsFromMarkdown(markdownContent, file.name);
+            toc += fileToc + "\n\n";
+            document.getElementById("markdownOutput").value = toc;
+          };
+          reader.readAsText(file);
+        });
+      }
+
+      function generateTableOfContentsFromMarkdown(markdown, fileName) {
+        const regex = /^(#+)\s+(.+)/gm;
+        let toc = "";
+        let match;
+        while ((match = regex.exec(markdown)) !== null) {
+          const level = match[1].length;
+          const title = match[2];
+          const link = title
+            .toLowerCase()
+            .replace(/\s+/g, "-")
+            .replaceAll("?", "")
+            .replaceAll("(", "")
+            .replaceAll(")", "")
+            .trimEnd();
+          const fileLink = fileName.replace(/\s+/g, "-").replace(/\.md$/, ".md");
+          const tocItem = `${"\t".repeat(level - 1)}- [${title}](${fileLink}#${link})`;
+          toc += tocItem + "\n";
+        }
+        return toc.trim();
+      }
+    </script>
+  </body>
+</html>
